@@ -14,16 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      complaints: {
+        Row: {
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at: string
+          description: string
+          id: string
+          image_url: string | null
+          status: Database["public"]["Enums"]["complaint_status"]
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string
+          description: string
+          id?: string
+          image_url?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["complaint_category"]
+          created_at?: string
+          description?: string
+          id?: string
+          image_url?: string | null
+          status?: Database["public"]["Enums"]["complaint_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read_status: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read_status?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read_status?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      responses: {
+        Row: {
+          admin_id: string
+          complaint_id: string
+          created_at: string
+          id: string
+          response_text: string
+        }
+        Insert: {
+          admin_id: string
+          complaint_id: string
+          created_at?: string
+          id?: string
+          response_text: string
+        }
+        Update: {
+          admin_id?: string
+          complaint_id?: string
+          created_at?: string
+          id?: string
+          response_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "responses_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "student" | "lecturer" | "admin"
+      complaint_category:
+        | "Academic Issues"
+        | "Facility Problems"
+        | "Administrative Concerns"
+        | "Hostel and Accommodation"
+        | "Library Services"
+        | "ICT Issues"
+        | "Student Welfare"
+        | "Other Matters"
+      complaint_status:
+        | "Pending"
+        | "Under Review"
+        | "In Progress"
+        | "Resolved"
+        | "Closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +298,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["student", "lecturer", "admin"],
+      complaint_category: [
+        "Academic Issues",
+        "Facility Problems",
+        "Administrative Concerns",
+        "Hostel and Accommodation",
+        "Library Services",
+        "ICT Issues",
+        "Student Welfare",
+        "Other Matters",
+      ],
+      complaint_status: [
+        "Pending",
+        "Under Review",
+        "In Progress",
+        "Resolved",
+        "Closed",
+      ],
+    },
   },
 } as const
