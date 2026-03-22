@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { AppNavbar } from "@/components/AppNavbar";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Upload, ArrowLeft } from "lucide-react";
+import { Loader2, Upload, ArrowLeft, Send, Info } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -97,20 +97,20 @@ export default function SubmitComplaint() {
           Back
         </button>
 
-        <div className="bg-card rounded-xl shadow-sm border border-border p-6 sm:p-8 animate-slide-up">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8 animate-slide-up">
           <h1 className="text-xl font-bold text-foreground mb-6" style={{ lineHeight: "1.2" }}>
             Submit New Complaint
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">
                 Complaint Category *
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
+                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
               >
                 <option value="">Select a category</option>
                 {CATEGORIES.map((c) => (
@@ -120,29 +120,31 @@ export default function SubmitComplaint() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">
                 Complaint Description *
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={6}
-                className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
+                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background resize-none"
                 placeholder="Describe your complaint in detail..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">
+              <label className="block text-sm font-semibold text-foreground mb-2 uppercase tracking-wide">
                 Attach Image (Optional)
               </label>
-              <div className="border-2 border-dashed border-input rounded-lg p-4 text-center hover:border-primary/40 transition-colors cursor-pointer"
+              <div
+                className="border-2 border-dashed border-input rounded-xl p-8 text-center hover:border-primary/40 transition-colors cursor-pointer bg-muted/20"
                 onClick={() => document.getElementById("file-upload")?.click()}
               >
-                <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {file ? file.name : "Click to upload • Max 5MB, JPG/PNG only"}
+                <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-foreground font-medium">
+                  {file ? file.name : "Click to upload or drag and drop"}
                 </p>
+                <p className="text-xs text-primary mt-1">PNG, JPG or PDF (MAX. 5MB)</p>
                 <input
                   id="file-upload"
                   type="file"
@@ -155,26 +157,47 @@ export default function SubmitComplaint() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
-              >
-                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Submit Complaint
-              </button>
+            <div className="flex gap-3 pt-2 justify-end">
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-6 py-2.5 bg-muted text-muted-foreground rounded-lg text-sm font-semibold hover:bg-muted/80 transition-colors active:scale-[0.98]"
+                className="px-8 py-3 text-foreground rounded-xl text-sm font-semibold hover:bg-muted transition-colors active:scale-[0.98]"
               >
                 Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-primary text-primary-foreground px-8 py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                Submit Complaint
+                <Send className="h-4 w-4" />
               </button>
             </div>
           </form>
         </div>
+
+        {/* Privacy Note */}
+        <div className="mt-6 bg-info/5 border border-info/20 rounded-xl p-4 flex gap-3 items-start animate-slide-up" style={{ animationDelay: "100ms" }}>
+          <Info className="h-5 w-5 text-info shrink-0 mt-0.5" />
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">Privacy Note:</span> Your complaint will be treated with confidentiality. For urgent security matters, please contact campus security directly at (555) 0123.
+          </p>
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border mt-12 py-6 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">© 2024 Estam University. All rights reserved.</p>
+          <div className="flex gap-6">
+            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Privacy Policy</span>
+            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Terms of Service</span>
+            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Help Center</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
