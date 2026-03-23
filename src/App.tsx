@@ -3,12 +3,14 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import MyComplaints from "./pages/MyComplaints";
 import ComplaintDetails from "./pages/ComplaintDetails";
 import Notifications from "./pages/Notifications";
+import ProfilePage from "./pages/ProfilePage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminComplaintView from "./pages/AdminComplaintView";
 import NotFound from "./pages/NotFound";
@@ -36,13 +38,15 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 
 const AppRoutes = () => (
   <Routes>
+    <Route path="/" element={<LandingPage />} />
     <Route path="/login" element={<AuthPage />} />
-    <Route path="/" element={<Navigate to="/login" replace />} />
+    <Route path="/register" element={<AuthPage defaultTab="register" />} />
     <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     <Route path="/submit-complaint" element={<ProtectedRoute><SubmitComplaint /></ProtectedRoute>} />
     <Route path="/my-complaints" element={<ProtectedRoute><MyComplaints /></ProtectedRoute>} />
     <Route path="/complaint/:id" element={<ProtectedRoute><ComplaintDetails /></ProtectedRoute>} />
     <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
     <Route path="/admin" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
     <Route path="/admin/complaints" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
     <Route path="/admin/complaint/:id" element={<ProtectedRoute adminOnly><AdminComplaintView /></ProtectedRoute>} />
