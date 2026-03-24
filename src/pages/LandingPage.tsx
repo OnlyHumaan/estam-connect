@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Shield, Clock, Eye, Zap, FolderOpen, Bell } from "lucide-react";
-import estamLogo from "@/assets/estamlogo.png";
+import { Footer } from "@/components/Footer";
 
 const features = [
   { icon: <Clock className="h-8 w-8" />, title: "24/7 Complaint Submission", desc: "Submit complaints anytime, anywhere through our secure online platform." },
@@ -17,9 +17,7 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="bg-background border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <img src={estamLogo} alt="Estam University" className="h-10 sm:h-12 object-contain" />
-          </div>
+          <span className="text-lg font-bold text-primary">ESTAM University</span>
           <div className="flex items-center gap-3">
             <Link to="/login" className="px-5 py-2 text-sm font-semibold text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors">
               Login
@@ -36,7 +34,6 @@ export default function LandingPage() {
       <section className="relative overflow-hidden bg-primary text-primary-foreground py-20 sm:py-28">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDE0djEyaC0yVjE0aDJ6TTI0IDI2VjE0aDJ2MTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
-          <img src={estamLogo} alt="Estam University" className="h-20 sm:h-24 mx-auto mb-6 object-contain brightness-0 invert" />
           <h1 className="text-3xl sm:text-5xl font-bold mb-4 leading-tight">
             Student Complaint and Feedback<br />Management System
           </h1>
@@ -78,20 +75,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 bg-background mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <img src={estamLogo} alt="Estam University" className="h-8 object-contain" />
-            <p className="text-sm text-muted-foreground">© 2024 Estam University. All rights reserved.</p>
-          </div>
-          <div className="flex gap-6">
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Privacy Policy</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Terms of Service</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Help Center</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -1,9 +1,11 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { AppNavbar } from "@/components/AppNavbar";
+import { Footer } from "@/components/Footer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, Download, ClipboardList, Clock, RefreshCw, CheckCircle2, Eye, Pencil, Filter, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const CATEGORIES = [
   "All", "Academic Issues", "Facility Problems", "Administrative Concerns",
@@ -13,6 +15,14 @@ const STATUSES = ["All", "Pending", "Under Review", "In Progress", "Resolved", "
 
 function getInitials(name: string) {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function timeAgo(date: Date) {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
 }
 
 interface Complaint {
@@ -35,25 +45,54 @@ export default function AdminDashboard() {
   const [sortField, setSortField] = useState<"created_at" | "status" | "category">("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [updating, setUpdating] = useState(false);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const prevIdsRef = useRef<Set<string>>(new Set());
   const perPage = 10;
 
   const fetchComplaints = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
+    setUpdating(true);
     const { data, error } = await supabase
       .from("complaints")
       .select("id, category, status, description, created_at, user_id, profiles(name, email)")
       .order("created_at", { ascending: false });
-    if (!error) setComplaints((data as unknown as Complaint[]) || []);
+    if (error) {
+      toast.error("Failed to refresh complaints. Retrying...");
+    } else {
+      const fetched = (data as unknown as Complaint[]) || [];
+      // Detect new complaints
+      const fetchedIds = new Set(fetched.map(c => c.id));
+      if (prevIdsRef.current.size > 0) {
+        const added = new Set<string>();
+        fetchedIds.forEach(id => { if (!prevIdsRef.current.has(id)) added.add(id); });
+        if (added.size > 0) {
+          setNewIds(added);
+          setTimeout(() => setNewIds(new Set()), 5000);
+        }
+      }
+      prevIdsRef.current = fetchedIds;
+      setComplaints(fetched);
+      setLastUpdated(new Date());
+    }
     setLoading(false);
     setRefreshing(false);
+    setTimeout(() => setUpdating(false), 2000);
   }, []);
 
   useEffect(() => {
     fetchComplaints();
-    // Auto-refresh every 5 seconds
     const interval = setInterval(() => fetchComplaints(), 5000);
     return () => clearInterval(interval);
   }, [fetchComplaints]);
+
+  // Live timer
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick(v => v + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const stats = useMemo(() => {
     const total = complaints.length;
@@ -69,7 +108,7 @@ export default function AdminDashboard() {
     if (filterStatus !== "All") list = list.filter((c) => c.status === filterStatus);
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter((c) => c.id.toLowerCase().includes(q) || (c.profiles?.name || "").toLowerCase().includes(q));
+      list = list.filter((c) => c.id.toLowerCase().includes(q) || (c.profiles?.name || "").toLowerCase().includes(q) || c.description.toLowerCase().includes(q));
     }
     list.sort((a, b) => {
       const aVal = a[sortField]; const bVal = b[sortField];
@@ -110,9 +149,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-secondary flex flex-col">
       <AppNavbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-slide-up">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground" style={{ lineHeight: "1.2" }}>
@@ -120,11 +159,23 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-muted-foreground text-sm mt-1">Real-time overview and student grievance processing</p>
           </div>
-          <button onClick={() => fetchComplaints(true)} disabled={refreshing}
-            className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-50 self-start">
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Refresh
-          </button>
+          <div className="flex items-center gap-3 self-start">
+            {/* Live indicator */}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+              </span>
+              <span className="font-medium text-success">Live</span>
+              {updating && <span className="text-muted-foreground ml-1">Updating...</span>}
+            </div>
+            <span className="text-xs text-muted-foreground hidden sm:inline">Updated {timeAgo(lastUpdated)}</span>
+            <button onClick={() => fetchComplaints(true)} disabled={refreshing}
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm font-semibold hover:bg-muted transition-colors disabled:opacity-50">
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Refresh
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -170,7 +221,7 @@ export default function AdminDashboard() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search by ID or student name..."
+              placeholder="Search by ID, student name, or description..."
               className="w-full pl-9 pr-3 py-2.5 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background" />
           </div>
           <button onClick={exportCSV}
@@ -209,7 +260,7 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody>
                     {paged.map((c) => (
-                      <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <tr key={c.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-all duration-500 ${newIds.has(c.id) ? "bg-warning/10" : ""}`}>
                         <td className="px-6 py-5 font-semibold text-[hsl(24,95%,53%)] text-sm">#CMP-{c.id.slice(0, 4).toUpperCase()}</td>
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
@@ -259,16 +310,7 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      <footer className="border-t border-border mt-12 py-6 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© 2024 Estam University. All rights reserved.</p>
-          <div className="flex gap-6">
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Privacy Policy</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Terms of Service</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Help Center</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
