@@ -2,9 +2,11 @@ import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth-context";
 import { AppNavbar } from "@/components/AppNavbar";
+import { Footer } from "@/components/Footer";
 import { StatusBadge } from "@/components/StatusBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, Plus, ClipboardList, Clock, RefreshCw, CheckCircle2, Eye, Pencil, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileText, Plus, ClipboardList, Clock, RefreshCw, CheckCircle2, Eye, Pencil, Filter } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const CATEGORIES = [
   "All", "Academic Issues", "Facility Problems", "Administrative Concerns",
@@ -64,16 +66,16 @@ export default function Dashboard() {
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
 
   const statCards = [
-    { label: "Total Complaints", value: stats.total, icon: <ClipboardList className="h-6 w-6" />, iconBg: "bg-primary/10 text-primary", trend: "+12%", trendColor: "text-success" },
-    { label: "Pending", value: stats.pending, icon: <Clock className="h-6 w-6" />, iconBg: "bg-warning/10 text-warning", trend: "+5%", trendColor: "text-warning" },
-    { label: "In Progress", value: stats.inProgress, icon: <RefreshCw className="h-6 w-6" />, iconBg: "bg-info/10 text-info", trend: "-2%", trendColor: "text-destructive" },
-    { label: "Resolved", value: stats.resolved, icon: <CheckCircle2 className="h-6 w-6" />, iconBg: "bg-success/10 text-success", trend: "+15%", trendColor: "text-success" },
+    { label: "Total Complaints", value: stats.total, icon: <ClipboardList className="h-6 w-6" />, iconBg: "bg-primary/10 text-primary" },
+    { label: "Pending", value: stats.pending, icon: <Clock className="h-6 w-6" />, iconBg: "bg-warning/10 text-warning" },
+    { label: "In Progress", value: stats.inProgress, icon: <RefreshCw className="h-6 w-6" />, iconBg: "bg-info/10 text-info" },
+    { label: "Resolved", value: stats.resolved, icon: <CheckCircle2 className="h-6 w-6" />, iconBg: "bg-success/10 text-success" },
   ];
 
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-secondary flex flex-col">
       <AppNavbar />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-slide-up">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground" style={{ lineHeight: "1.2" }}>
@@ -98,7 +100,6 @@ export default function Dashboard() {
             <div key={s.label} className="bg-card rounded-xl shadow-sm border border-border p-5">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-2.5 rounded-xl ${s.iconBg}`}>{s.icon}</div>
-                <span className={`text-xs font-semibold ${s.trendColor}`}>{s.trend}↗</span>
               </div>
               <p className="text-sm text-muted-foreground">{s.label}</p>
               <p className="text-3xl font-bold text-foreground mt-1 tabular-nums">{s.value}</p>
@@ -112,34 +113,21 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-primary mb-2">Category</label>
-              <select
-                value={filterCategory}
-                onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
-                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c === "All" ? "All Categories" : c}</option>
-                ))}
+              <select value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
+                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background">
+                {CATEGORIES.map((c) => <option key={c} value={c}>{c === "All" ? "All Categories" : c}</option>)}
               </select>
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-primary mb-2">Status</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-              >
-                {STATUSES_LIST.map((s) => (
-                  <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>
-                ))}
+              <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+                className="w-full px-4 py-3 border border-input rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background">
+                {STATUSES_LIST.map((s) => <option key={s} value={s}>{s === "All" ? "All Statuses" : s}</option>)}
               </select>
             </div>
-            <button
-              onClick={() => { setFilterCategory("All"); setFilterStatus("All"); setPage(1); }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[hsl(24,95%,53%)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] whitespace-nowrap"
-            >
-              <Filter className="h-4 w-4" />
-              Apply Filters
+            <button onClick={() => { setFilterCategory("All"); setFilterStatus("All"); setPage(1); }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[hsl(24,95%,53%)] text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.98] whitespace-nowrap">
+              <Filter className="h-4 w-4" /> Reset Filters
             </button>
           </div>
         </div>
@@ -147,7 +135,9 @@ export default function Dashboard() {
         {/* Table */}
         <div className="bg-card rounded-xl shadow-sm border border-border animate-slide-up" style={{ animationDelay: "240ms" }}>
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
+            <div className="p-8 text-center text-muted-foreground flex items-center justify-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" /> Loading...
+            </div>
           ) : paged.length === 0 ? (
             <div className="p-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
@@ -173,9 +163,7 @@ export default function Dashboard() {
                   <tbody>
                     {paged.map((c) => (
                       <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-6 py-5 font-semibold text-[hsl(24,95%,53%)] text-sm">
-                          #CMP-{c.id.slice(0, 4).toUpperCase()}
-                        </td>
+                        <td className="px-6 py-5 font-semibold text-[hsl(24,95%,53%)] text-sm">#CMP-{c.id.slice(0, 4).toUpperCase()}</td>
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
                             <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
@@ -205,39 +193,19 @@ export default function Dashboard() {
                 </table>
               </div>
 
-              {/* Pagination */}
               <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-                <p className="text-sm text-muted-foreground">
-                  Showing {paged.length} of {filtered.length} complaints
-                </p>
+                <p className="text-sm text-muted-foreground">Showing {paged.length} of {filtered.length} complaints</p>
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-30 transition-colors"
-                  >
-                    Previous
-                  </button>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                    className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-30 transition-colors">Previous</button>
                   {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
+                    <button key={p} onClick={() => setPage(p)}
                       className={`h-9 w-9 rounded-lg text-sm font-medium transition-colors ${
-                        page === p
-                          ? "border-2 border-[hsl(24,95%,53%)] text-[hsl(24,95%,53%)]"
-                          : "border border-border hover:bg-muted"
-                      }`}
-                    >
-                      {p}
-                    </button>
+                        page === p ? "border-2 border-[hsl(24,95%,53%)] text-[hsl(24,95%,53%)]" : "border border-border hover:bg-muted"
+                      }`}>{p}</button>
                   ))}
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages || totalPages === 0}
-                    className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-30 transition-colors"
-                  >
-                    Next
-                  </button>
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0}
+                    className="px-3 py-2 rounded-lg border border-border text-sm hover:bg-muted disabled:opacity-30 transition-colors">Next</button>
                 </div>
               </div>
             </>
@@ -245,17 +213,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border mt-12 py-6 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">© 2024 Estam University. All rights reserved.</p>
-          <div className="flex gap-6">
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Privacy Policy</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Terms of Service</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer">Help Center</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
